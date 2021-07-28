@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Multiplayer Game</title>
+  <script src="../../socket.io/socket.io.js"></script>
+  <script src="https://code.jquery.com/jquery-3.5.0.js" integrity="sha256-r/AaFHrszJtwpe+tHyNi/XCfMxYpbsRg2Uqn0x3s2zc=" crossorigin="anonymous"></script>
+  <style>
+    span {
+      padding: 50px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="world"></div>
+
+  <script>
+
+    var playerLocation;
+
+    function center() {
+      var elem = $("span[x$='" + playerLocation.x + "'][y$='" + playerLocation.y + "']").get(0);
+      console.log("element type is=" + JSON.stringify(elem));
+      const elementLocation = offset(elem);
+      window.scrollTo((elementLocation.y - (window.innerWidth / 2)), (elementLocation.x - (window.innerHeight / 2)));
+    }
+
+    function offset(el) {
+      var rect = el.getBoundingClientRect(),
+      scrollLeft = window.pageXOffset || document.documentElement.scrollLeft,
+      scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      return { x: rect.top + scrollTop, y: rect.left + scrollLeft }
+    }
+
+    var socket = io.connect('http://localhost:8080');
+
+    socket.on('game', function (game) {
+      console.log("Game has been updated");
+      $("#world").html("");
+      for (i = 0; i < game.world.length; i++) {
+        for (j = 0; j < game.world[0].length; j++) {
+          (game.world[i][j] == 0) ? content = "0" : content = game.world[i][j];
+          if (game.world[i][j] == id) { playerLocation = { x: i, y: j }; };
+          var newElement = document.createElement("span");
+          $("#world").append(newElement);
+          newElement.innerHTML = content;
+          newElement.setAttribute("x", i);newElement.setAttribute("y", j);
+          newElement.setAttribute("id", i + "" + i + "" + j + "" + j);
+        }
+        $("#world").append("<br>");
+
+      }
+      center();
+    });
+
+    socket.on('notification', function (msg) {
+      console.log(msg);
+    });
+
+    var id = prompt('Enter player name:');
+    socket.emit('requestPlayer', id);
+
+    $(document).keydown(function (key) {
+      switch (parseInt(key.which, 10)) {
+
+        case 87: //w
+
+          var message = { id: id, movement: "w" };
+          socket.emit("movement", message);
+
+          break;
+        case 65: //a
+
+          var message = { id: id, movement: "a" };
+
+          socket.emit("movement", message);
+
+          break;
+        case 83: //s
+
+          var message = { id: id, movement: "s" };
+
+          socket.emit("movement", message);
+
+          break;
+        case 68: //d
+
+          var message = { id: id, movement: "d" };
+
+          socket.emit("movement", message);
+
+          break;
+        default:
+          break;
+      }
+    });
+
+  </script>
+</body>
+
+</html>
